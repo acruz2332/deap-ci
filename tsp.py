@@ -83,8 +83,8 @@ class TravelingSalesmanProblem:
             # read data lines until 'EOF' found:
             for row in reader:
                 if row[0] != 'EOF':
-                    # remove index at beginning of line:
-                    del row[0]
+                    # remove index at beginning of line and take x,y coordinates:
+                    row = [x for x in row[1:] if x]
 
                     # convert x,y coordinates to ndarray:
                     self.locations.append(np.asarray(row, dtype=np.float32))
@@ -107,7 +107,7 @@ class TravelingSalesmanProblem:
                     distance = np.linalg.norm(self.locations[j] - self.locations[i])
                     self.distances[i][j] = distance
                     self.distances[j][i] = distance
-                    print(f"{i}, {j}: location1 = {self.locations[i]}, location2 = {self.locations[j]} => distance = {distance}")
+                    # print(f"{i}, {j}: location1 = {self.locations[i]}, location2 = {self.locations[j]} => distance = {distance}")
 
             # serialize locations and distances:
             pickle.dump(self.locations, open(os.path.join(self.data_path, f"{self.name}-loc.pickle"), "wb"))

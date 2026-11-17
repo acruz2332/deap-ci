@@ -1,5 +1,42 @@
+import random
 from deap import tools
 from deap import algorithms
+
+
+def createHeuristicTour(current_tsp, k=3):
+    """Generates a TSP tour using Randomized Nearest Neighbor (top-k closest unvisited cities)."""
+    num_cities = len(current_tsp)
+    unvisited = set(range(num_cities))
+
+    # Pick a random starting city:
+    current_city = random.choice(list(unvisited))
+    tour = [current_city]
+    unvisited.remove(current_city)
+
+    while unvisited:
+        # Find the top-k closest unvisited cities to current_city:
+        nearest_candidates = sorted(
+            unvisited,
+            key=lambda city: current_tsp.distances[current_city][city]
+        )
+        next_city = random.choice(nearest_candidates[:k])
+
+        tour.append(next_city)
+        unvisited.remove(next_city)
+        current_city = next_city
+
+    return tour
+
+
+def createHybridOrder(current_tsp, heuristic_prob=0.2, k=3):
+    """Hybrid initialization: generates a heuristic tour with probability `heuristic_prob`,
+    otherwise generates a purely random permutation.
+    """
+    if random.random() < heuristic_prob:
+        return createHeuristicTour(current_tsp, k=k)
+    else:
+        return random.sample(range(len(current_tsp)), len(current_tsp))
+
 
 def eaSimpleWithElitism(population, toolbox, cxpb, mutpb, ngen, stats=None,
              halloffame=None, verbose=__debug__):
