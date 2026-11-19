@@ -38,6 +38,25 @@ def createHybridOrder(current_tsp, heuristic_prob=0.2, k=3):
         return random.sample(range(len(current_tsp)), len(current_tsp))
 
 
+def mutInversion(individual):
+    """Inversion Mutation (2-opt style): picks two random cut points and reverses the sub-tour."""
+    i, j = sorted(random.sample(range(len(individual)), 2))
+    individual[i:j + 1] = individual[i:j + 1][::-1]
+    return individual,
+
+
+def selRank(individuals, k, pressure=1.0):
+    """Rank-based Parent Selection: sorts individuals from worst (rank 1) to best (rank N)
+    and selects `k` parents with probability proportional to `rank ** pressure` (1.0 = linear rank).
+    """
+    sorted_inds = sorted(individuals, key=lambda ind: ind.fitness)
+    if pressure == 1.0:
+        weights = range(1, len(sorted_inds) + 1)
+    else:
+        weights = [r ** pressure for r in range(1, len(sorted_inds) + 1)]
+    return random.choices(sorted_inds, weights=weights, k=k)
+
+
 def eaSimpleWithElitism(population, toolbox, cxpb, mutpb, ngen=None, stats=None,
              halloffame=None, verbose=__debug__, max_evals=50000):
     """This algorithm is similar to DEAP eaSimple() algorithm, with the modification that

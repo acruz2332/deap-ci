@@ -12,7 +12,7 @@ import seaborn as sns
 
 import tsp
 from elitism import (
-    createHybridOrder,
+    createHybridOrder, mutInversion, selRank,
     eaSimpleWithElitism, epWithElitism, epStandard, esMuPlusLambda,
     evSteadyState, evBatch, evSteadyStateReplaceWorst, eaMuPlusLambdaUnique
 )
@@ -60,11 +60,12 @@ EV_BATCH_SIZE = 300   # batch size n of offspring produced before competition in
 EV_RW_P_CROSSOVER = 0.9  # crossover probability in steady-state replace-worst
 EV_RW_P_MUTATION = 0.1   # mutation probability in steady-state replace-worst
 
-# Proposed Diversity-Preserving (mu + lambda)-EA specific constants:
+# Proposed Diversity-Preserving (mu + lambda)-EA specific constants (tuned optimal values):
 EA_MPL_MU = 300          # number of UNIQUE parents kept each generation
-EA_MPL_LAMBDA = 300      # number of offspring generated each generation (~500 gens in 50k evals)
-EA_MPL_P_CROSSOVER = 0.9 # crossover probability in Diversity-Preserving (mu + lambda)-EA
-EA_MPL_P_MUTATION = 0.1  # mutation probability in Diversity-Preserving (mu + lambda)-EA
+EA_MPL_LAMBDA = 300      # number of offspring generated each generation
+EA_MPL_P_CROSSOVER = 0.5 # tuned optimal crossover probability
+EA_MPL_P_MUTATION = 0.3  # tuned optimal mutation probability
+EA_MPL_RANK_PRESSURE = 1.0  # rank selection pressure (1.0 = linear rank selection)
 
 # define a single objective, minimizing fitness strategy:
 creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
@@ -93,10 +94,12 @@ def setup_toolbox(current_tsp):
 
     toolbox.register("evaluate", tpsDistance)
 
-    # Genetic operators:
-    toolbox.register("select", tools.selTournament, tournsize=TOURN_SIZE)
+    # Genetic operators (tuned optimal operators: Linear Rank + Order Crossover + Inversion Mutation):
+    toolbox.register("select", selRank, pressure=EA_MPL_RANK_PRESSURE)
+    # toolbox.register("select", tools.selTournament, tournsize=TOURN_SIZE)
     toolbox.register("mate", tools.cxOrdered)
-    toolbox.register("mutate", tools.mutShuffleIndexes, indpb=1.0 / len(current_tsp))
+    toolbox.register("mutate", mutInversion)
+    # toolbox.register("mutate", tools.mutShuffleIndexes, indpb=1.0 / len(current_tsp))
 
     return toolbox
 
