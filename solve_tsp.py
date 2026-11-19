@@ -4,6 +4,7 @@ from deap import tools
 
 import random
 import array
+import time
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -46,22 +47,22 @@ EP_P_MUTATION = 1.0   # probability for mutating each offspring in EP (no crosso
 EP_Q_TOURNAMENT = 10  # number of random opponents in standard textbook EP round-robin tournament
 
 # ES (Evolution Strategy: (mu + lambda)-ES) specific constants:
-ES_MU = 50            # number of parents (mu) kept each generation (set to 1 for (1 + lambda)-ES)
-ES_LAMBDA = 300       # number of offspring (lambda) generated each generation (lambda > mu)
+ES_MU = 300            # number of parents (mu) kept each generation (set to 1 for (1 + lambda)-ES)
+ES_LAMBDA = 600       # number of offspring (lambda) generated each generation (lambda > mu)
 ES_P_CROSSOVER = 0.9  # crossover probability in ES (varOr requires ES_P_CROSSOVER + ES_P_MUTATION <= 1.0)
 ES_P_MUTATION = 0.1   # mutation probability in ES (1.0 = pure mutation ES)
 
 # EV (Steady-State EV(m, 1) & Batch EV(m, n) from lecture slides 3-4) specific constants:
 EV_P_MUTATION = 1.0   # probability of mutating the cloned parent in EV
-EV_BATCH_SIZE = 100   # batch size n of offspring produced before competition in EV(m, n)
+EV_BATCH_SIZE = 300   # batch size n of offspring produced before competition in EV(m, n)
 
 # EV Steady-State Replace-Worst Variant (GENITOR: Tournament + Crossover + Mutation + Replace-Worst):
 EV_RW_P_CROSSOVER = 0.9  # crossover probability in steady-state replace-worst
 EV_RW_P_MUTATION = 0.1   # mutation probability in steady-state replace-worst
 
 # Proposed Diversity-Preserving (mu + lambda)-EA specific constants:
-EA_MPL_MU = 100          # number of UNIQUE parents kept each generation
-EA_MPL_LAMBDA = 100      # number of offspring generated each generation (~500 gens in 50k evals)
+EA_MPL_MU = 300          # number of UNIQUE parents kept each generation
+EA_MPL_LAMBDA = 300      # number of offspring generated each generation (~500 gens in 50k evals)
 EA_MPL_P_CROSSOVER = 0.9 # crossover probability in Diversity-Preserving (mu + lambda)-EA
 EA_MPL_P_MUTATION = 0.1  # mutation probability in Diversity-Preserving (mu + lambda)-EA
 
@@ -107,6 +108,7 @@ def main():
     errors = {}
     pct_errors = {}
     eval_counts = {}
+    times = {}
     fig_num = 1
 
     for problem_name, opt_val in zip(TSP_PROBLEMS, TSP_OPTIMALS):
@@ -140,6 +142,9 @@ def main():
         8. Proposed Diversity-Preserving (mu + lambda)-EA (Unique-Survivor Elitist GA)
         Each algorithm will evolve the population and return the best individual found, along with its fitness and error metrics compared to the known optimal solution. The results will be printed and can also be plotted for
         """
+
+        #import time module and record the start time
+        start_time = time.time()
 
         # perform the Evolutionary flow (uncomment the algorithm you want to run):
         # 1. EA (Genetic Algorithm with Elitism):
@@ -196,6 +201,9 @@ def main():
         best = tools.selBest(population, 1)[0]
         best_fitness = best.fitness.values[0]
         error = best_fitness - opt_val
+        end_time = time.time()
+        execution_time = end_time - start_time
+        times[problem_name] = execution_time
         pct_error = (error / opt_val) * 100.0
         total_evals = sum(logbook.select("nevals"))
 
@@ -241,11 +249,13 @@ def main():
     print("SUMMARY OF ERRORS ACROSS ALL TSP PROBLEMS")
     print("=" * 60)
     for problem_name, opt_val in zip(TSP_PROBLEMS, TSP_OPTIMALS):
-        print(f"{problem_name:<10} | Opt: {opt_val:<8} | Best: {best_ever_fitness[problem_name]:>12.4f} | Error: {errors[problem_name]:>12.4f} | Deviation: {pct_errors[problem_name]:>7.2f}% | Evals: {eval_counts[problem_name]}")
+        print(f"{problem_name:<10} | Opt: {opt_val:<8} | Best: {best_ever_fitness[problem_name]:>12.4f} | Error: {errors[problem_name]:>12.4f} | Deviation: {pct_errors[problem_name]:>7.2f}% | Execution Time: {times[problem_name]:>7.2f}s | Evals: {eval_counts[problem_name]}")
     print("-" * 60)
     print(f"Total Sum of Errors (Distance) : {total_error_sum:.4f}")
     print(f"Total Sum of Deviation (%)     : {total_pct_error_sum:.2f}%")
+    print(f"Total time taken for all problems  (s) : {sum(times.values()):.2f}s")
     print(f"Average Deviation (%)          : {avg_pct_error:.2f}%")
+    print(f"Average Execution Time (s)     : {sum(times.values()) / len(times):.2f}s")
     print("=" * 60)
 
     # # show all plots simultaneously:
