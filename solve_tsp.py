@@ -65,7 +65,7 @@ EA_MPL_MU = 300          # number of UNIQUE parents kept each generation
 EA_MPL_LAMBDA = 300      # number of offspring generated each generation
 EA_MPL_P_CROSSOVER = 0.5 # tuned optimal crossover probability
 EA_MPL_P_MUTATION = 0.3  # tuned optimal mutation probability
-EA_MPL_RANK_PRESSURE = 1.0  # rank selection pressure (1.0 = linear rank selection)
+EA_MPL_RANK_PRESSURE = 10.0  # tuned optimal non-linear rank selection pressure (weight = rank ** pressure)
 
 # define a single objective, minimizing fitness strategy:
 creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
