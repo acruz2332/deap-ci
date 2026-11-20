@@ -83,11 +83,11 @@ class TravelingSalesmanProblem:
             # read data lines until 'EOF' found:
             for row in reader:
                 if row[0] != 'EOF':
-                    # remove index at beginning of line:
-                    del row[0]
+                    # remove index at beginning of line and take x,y coordinates:
+                    row = [x for x in row[1:] if x]
 
                     # convert x,y coordinates to ndarray:
-                    self.locations.append(np.asarray(row, dtype=np.float32))
+                    self.locations.append(np.asarray(row, dtype=np.float64))
                 else:
                     break
 
@@ -95,23 +95,43 @@ class TravelingSalesmanProblem:
             self.tspSize = len(self.locations)
 
             # print data:
-            print(f"length = {self.tspSize}, locations = {self.locations}")
+            # print(f"length = {self.tspSize}, locations = {self.locations}")
 
             # initialize distance matrix by filling it with 0's:
             self.distances = [[0] * self.tspSize for _ in range(self.tspSize)]
 
-            # populate the distance matrix with calculated distances:
+            # populate the distance matrix with TSPLIB EUC_2D integer-rounded Euclidean distances:
             for i in range(self.tspSize):
                 for j in range(i + 1, self.tspSize):
-                    # calculate euclidean distance between two ndarrays:
-                    distance = np.linalg.norm(self.locations[j] - self.locations[i])
+                    # calculate euclidean distance and round to nearest integer (TSPLIB EUC_2D nint):
+                    distance = int(float(np.linalg.norm(self.locations[j] - self.locations[i])) + 0.5)
                     self.distances[i][j] = distance
                     self.distances[j][i] = distance
-                    print(f"{i}, {j}: location1 = {self.locations[i]}, location2 = {self.locations[j]} => distance = {distance}")
+                    # print(f"{i}, {j}: location1 = {self.locations[i]}, location2 = {self.locations[j]} => distance = {distance}")
 
             # serialize locations and distances:
             pickle.dump(self.locations, open(os.path.join(self.data_path, f"{self.name}-loc.pickle"), "wb"))
             pickle.dump(self.distances, open(os.path.join(self.data_path, f"{self.name}-dist.pickle"), "wb"))
+
+    def getOptimalTour(self):
+        """Read the optimal tour from the corresponding .opt.tour file and return it as a list of city indices"""
+        opt_tour = []
+        tour_file = os.path.join(self.data_path, f"{self.name}.opt.tour")
+        with open(tour_file) as f:
+            in_tour_section = False
+            for line in f:
+                tokens = line.strip().split()
+                if not tokens:
+                    continue
+                if tokens[0] == "TOUR_SECTION":
+                    in_tour_section = True
+                    continue
+                if in_tour_section:
+                    for token in tokens:
+                        if token in ("-1", "EOF"):
+                            return opt_tour
+                        opt_tour.append(int(token) - 1)  # Convert to 0-based
+        return opt_tour
 
     def getTotalDistance(self, indices):
         """Calculates the total distance of the path described by the given indices of the cities
@@ -150,22 +170,29 @@ class TravelingSalesmanProblem:
 
 # testing the class:
 def main():
-    # create a problem instance:
-    tsp = TravelingSalesmanProblem("bayg29")
+    problems = ["berlin52", "eil101"
+                , "tsp225", "pcb442", "pr1002"
+                ]
+    for i, problem in enumerate(problems, start=1):
+        # create a problem instance:
+        tsp = TravelingSalesmanProblem(problem)
 
-    # generate a random solution and evaluate it:
-    #randomSolution = random.sample(range(len(tsp)), len(tsp))
+        # read optimal solution from .opt.tour file:
+        optimalSolution = tsp.getOptimalTour()
+        exact_dist = tsp.getTotalDistance(optimalSolution)
+        rounded_dist = round(exact_dist)
 
-    # see http://elib.zib.de/pub/mp-testdata/tsp/tsplib/tsp/bayg29.opt.tour
-    optimalSolution = [0, 27, 5, 11, 8, 25, 2, 28, 4, 20, 1, 19, 9, 3, 14, 17, 13, 16, 21, 10, 18, 24, 6, 22, 7, 26, 15, 12, 23]
+        print("Problem name: " + tsp.name)
+        print("Optimal distance = ", exact_dist)
+        print("-" * 50)
 
-    print("Problem name: " + tsp.name)
-    print("Optimal solution = ", optimalSolution)
-    print("Optimal distance = ", tsp.getTotalDistance(optimalSolution))
+        # plot the solution in its own figure window:
+        plt.figure(i)
+        tsp.plotData(optimalSolution)
+        plt.title(f"{tsp.name} (Optimal Tour Length: {rounded_dist})")
 
-    # plot the solution:
-    plot = tsp.plotData(optimalSolution)
-    plot.show()
+    # show all plots simultaneously:
+    plt.show()
 
 
 if __name__ == "__main__":

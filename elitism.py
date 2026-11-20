@@ -629,7 +629,7 @@ def _selectUniqueBest(individuals, k):
     return selected
 
 
-def eaMuPlusLambdaUnique(population, toolbox, mu=300, lambda_=300, cxpb=0.5, mutpb=0.3,
+def eaMuPlusLambdaUnique(population, toolbox, mu=300, lambda_=150, cxpb=0.9, mutpb=0.3,
                          ngen=None, stats=None, verbose=__debug__, max_evals=50000):
     """Proposed Diversity-Preserving (mu + lambda) Evolutionary Algorithm.
     Combines GA variation, (mu + lambda) elitist survivor selection, and Duplicate Elimination:

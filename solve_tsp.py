@@ -60,12 +60,12 @@ EV_BATCH_SIZE = 300   # batch size n of offspring produced before competition in
 EV_RW_P_CROSSOVER = 0.9  # crossover probability in steady-state replace-worst
 EV_RW_P_MUTATION = 0.1   # mutation probability in steady-state replace-worst
 
-# Proposed Diversity-Preserving (mu + lambda)-EA specific constants (tuned optimal values):
+# Proposed Diversity-Preserving (mu + lambda)-EA specific constants (strict OFAT tuned values):
 EA_MPL_MU = 300          # number of UNIQUE parents kept each generation
-EA_MPL_LAMBDA = 300      # number of offspring generated each generation
-EA_MPL_P_CROSSOVER = 0.5 # tuned optimal crossover probability
+EA_MPL_LAMBDA = 150      # tuned optimal number of offspring generated each generation
+EA_MPL_P_CROSSOVER = 0.9 # tuned optimal crossover probability
 EA_MPL_P_MUTATION = 0.3  # tuned optimal mutation probability
-EA_MPL_RANK_PRESSURE = 10.0  # tuned optimal non-linear rank selection pressure (weight = rank ** pressure)
+EA_MPL_TOURN_SIZE = 5    # tuned optimal tournament size for parent selection
 
 # define a single objective, minimizing fitness strategy:
 creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
@@ -94,12 +94,12 @@ def setup_toolbox(current_tsp):
 
     toolbox.register("evaluate", tpsDistance)
 
-    # Genetic operators (tuned optimal operators: Non-Linear Rank Selection + Order Crossover + Inversion Mutation):
-    toolbox.register("select", selRank, pressure=EA_MPL_RANK_PRESSURE)
-    # toolbox.register("select", tools.selTournament, tournsize=TOURN_SIZE)
+    # Genetic operators (strict OFAT tuned operators: Tournament Selection + Order Crossover + Shuffle Indexes Mutation):
+    toolbox.register("select", tools.selTournament, tournsize=EA_MPL_TOURN_SIZE)
+    # toolbox.register("select", selRank, pressure=10.0)
     toolbox.register("mate", tools.cxOrdered)
-    toolbox.register("mutate", mutInversion)
-    # toolbox.register("mutate", tools.mutShuffleIndexes, indpb=1.0 / len(current_tsp))
+    toolbox.register("mutate", tools.mutShuffleIndexes, indpb=1.0 / len(current_tsp))
+    # toolbox.register("mutate", mutInversion)
 
     return toolbox
 
