@@ -35,7 +35,7 @@ MAX_EVALS = 50000     # strict maximum fitness function evaluations per run (ass
 MAX_GENERATIONS = None  # set to None to run purely until MAX_EVALS is reached
 HEURISTIC_PROB = 1.0  # probability of using heuristic initialization per individual
 HEURISTIC_K = 1       # top-k nearest neighbors for randomized heuristic tour
-TOURN_SIZE = 2        # tournament size for parent selection (used by EA and GENITOR)
+TOURN_SIZE = 2        # tournament size when using tools.selTournament as parent selection
 
 # EA (Genetic Algorithm) specific constants:
 EA_HALL_OF_FAME_SIZE = 20  # number of elites preserved in HallOfFame in EA
@@ -56,7 +56,7 @@ ES_P_MUTATION = 0.1   # mutation probability in ES (1.0 = pure mutation ES)
 EV_P_MUTATION = 1.0   # probability of mutating the cloned parent in EV
 EV_BATCH_SIZE = 300   # batch size n of offspring produced before competition in EV(m, n)
 
-# EV Steady-State Replace-Worst Variant (GENITOR: Tournament + Crossover + Mutation + Replace-Worst):
+# EV Steady-State Replace-Worst Variant (GENITOR: Parent Selection + Crossover + Mutation + No-Duplicate Replace-Worst):
 EV_RW_P_CROSSOVER = 0.9  # crossover probability in steady-state replace-worst
 EV_RW_P_MUTATION = 0.1   # mutation probability in steady-state replace-worst
 
@@ -94,7 +94,7 @@ def setup_toolbox(current_tsp):
 
     toolbox.register("evaluate", tpsDistance)
 
-    # Genetic operators (tuned optimal operators: Linear Rank + Order Crossover + Inversion Mutation):
+    # Genetic operators (tuned optimal operators: Non-Linear Rank Selection + Order Crossover + Inversion Mutation):
     toolbox.register("select", selRank, pressure=EA_MPL_RANK_PRESSURE)
     # toolbox.register("select", tools.selTournament, tournsize=TOURN_SIZE)
     toolbox.register("mate", tools.cxOrdered)
@@ -134,16 +134,16 @@ def main():
         hof = tools.HallOfFame(EA_HALL_OF_FAME_SIZE)
 
         """
-        This is where you can choose which evolutionary algorithm to run by uncommenting the corresponding block of code. You can choose between:
-        1. EA (Genetic Algorithm with Elitism)
-        2. EP Deterministic (EV(m, n) with m=n)
-        3. EP Standard Textbook (Stochastic q-Tournament Survivor Selection)
+        Choose which evolutionary algorithm to run by uncommenting the corresponding block below:
+        1. EA (Generational Genetic Algorithm with HallOfFame Elitism)
+        2. EP Deterministic (EV(m, n) with m=n, strict top-m survivor selection)
+        3. EP Standard Textbook (Stochastic q-Tournament round-robin survivor selection)
         4. ES ((mu + lambda)-ES by Schwefel, 1975)
-        5. EV Steady-State (EV(m, 1) - immediate 1-on-1 competition)
-        6. EV Batch (EV(m, n) - batch of n children competing 1-on-1)
-        7. EV Steady-State Replace-Worst Variant (GENITOR - Tournament + Crossover + Mutation + Replace-Worst)
-        8. Proposed Diversity-Preserving (mu + lambda)-EA (Unique-Survivor Elitist GA)
-        Each algorithm will evolve the population and return the best individual found, along with its fitness and error metrics compared to the known optimal solution. The results will be printed and can also be plotted for
+        5. EV Steady-State (EV(m, 1) - immediate 1-on-1 random-opponent competition)
+        6. EV Batch (EV(m, n) - batch of n children competing 1-on-1 against random members)
+        7. EV Steady-State Replace-Worst Variant (GENITOR - No-Duplicate Replace-Worst)
+        8. Proposed Diversity-Preserving (mu + lambda)-EA (Unique-Survivor Elitist EA)
+        Each algorithm respects MAX_EVALS = 50000 and returns the evolved population and logbook.
         """
 
         #import time module and record the start time
@@ -200,7 +200,7 @@ def main():
             ngen=MAX_GENERATIONS, max_evals=MAX_EVALS, stats=stats, verbose=False
         )
 
-        # extract best individual and compute error metrics (works for both EA and EP):
+        # extract best individual and compute error metrics (works across all 8 algorithms):
         best = tools.selBest(population, 1)[0]
         best_fitness = best.fitness.values[0]
         error = best_fitness - opt_val

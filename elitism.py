@@ -493,14 +493,15 @@ def evBatch(population, toolbox, batch_size=100, mutpb=1.0, ngen=None, stats=Non
     return population, logbook
 
 
-def evSteadyStateReplaceWorst(population, toolbox, cxpb=0.9, mutpb=0.2, ngen=None, stats=None,
+def evSteadyStateReplaceWorst(population, toolbox, cxpb=0.9, mutpb=0.1, ngen=None, stats=None,
                               verbose=__debug__, max_evals=50000):
-    """Steady-State Variant (GENITOR / Replace-Worst Survivor Selection).
+    """Steady-State Variant (GENITOR / No-Duplicate Replace-Worst Survivor Selection).
     Extends the standard Steady-State EV(m, 1) model with:
-    1. Tournament parent selection (`toolbox.select`) to pick 2 parents.
+    1. Parent selection (`toolbox.select`) to pick 2 parents.
     2. Crossover (`cxpb`) + Mutation (`mutpb`) to generate 2 offspring.
-    3. Immediate Replace-Worst survivor selection: each offspring replaces the WORST member
-       of the population if and only if the offspring is fitter (naturally 100% elitist).
+    3. Immediate No-Duplicate Replace-Worst survivor selection: rejects duplicate offspring
+       (by rounded fitness), replaces existing duplicates first, and otherwise replaces the WORST
+       member of the population if and only if the offspring is strictly fitter.
     Stops when `max_evals` fitness evaluations or `ngen` generation-equivalents is reached.
     """
     logbook = tools.Logbook()
@@ -535,7 +536,7 @@ def evSteadyStateReplaceWorst(population, toolbox, cxpb=0.9, mutpb=0.2, ngen=Non
         if ngen is not None and gen >= ngen:
             break
 
-        # 1. Select 2 parents via tournament selection and clone them
+        # 1. Select 2 parents via `toolbox.select` and clone them
         p1, p2 = toolbox.select(population, 2)
         child1, child2 = toolbox.clone(p1), toolbox.clone(p2)
 
@@ -628,16 +629,17 @@ def _selectUniqueBest(individuals, k):
     return selected
 
 
-def eaMuPlusLambdaUnique(population, toolbox, mu=100, lambda_=100, cxpb=0.9, mutpb=0.2,
+def eaMuPlusLambdaUnique(population, toolbox, mu=300, lambda_=300, cxpb=0.5, mutpb=0.3,
                          ngen=None, stats=None, verbose=__debug__, max_evals=50000):
     """Proposed Diversity-Preserving (mu + lambda) Evolutionary Algorithm.
-    Combines the strengths of GA, (mu + lambda)-ES, and Duplicate Elimination:
+    Combines GA variation, (mu + lambda) elitist survivor selection, and Duplicate Elimination:
     1. Evaluates the initial population and retains the top `mu` DISTINCT tours.
-    2. Each generation selects `lambda_` parents via Tournament Selection (`toolbox.select`)
-       and applies BOTH Crossover (`cxpb`) and Mutation (`mutpb`) via `algorithms.varAnd`.
+    2. Each generation selects `lambda_` parents via the registered parent selection operator
+       (`toolbox.select`, e.g., non-linear rank selection `selRank`) and applies BOTH
+       Crossover (`cxpb`) and Mutation (`mutpb`) via `algorithms.varAnd`.
     3. Survivor Selection merges parents + offspring (`mu + lambda_`) and keeps strictly the
        top `mu` UNIQUE individuals (`_selectUniqueBest`), preventing duplicate clone takeover
-       while guaranteeing full elitism across all `mu` slots and more generations within 50k evals.
+       while guaranteeing full elitism across all `mu` slots.
     Stops when `max_evals` fitness evaluations or `ngen` generations is reached.
     """
     logbook = tools.Logbook()
@@ -666,7 +668,7 @@ def eaMuPlusLambdaUnique(population, toolbox, mu=100, lambda_=100, cxpb=0.9, mut
             break
         gen += 1
 
-        # 1. Parent Selection (Tournament) + Variation (Crossover AND Mutation via varAnd)
+        # 1. Parent Selection (`toolbox.select`) + Variation (Crossover AND Mutation via varAnd)
         offspring = toolbox.select(population, lambda_)
         offspring = algorithms.varAnd(offspring, toolbox, cxpb, mutpb)
 
