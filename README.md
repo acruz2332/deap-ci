@@ -17,20 +17,7 @@ This repository contains the complete implementation and reproducibility pipelin
 - **`pcb442`** (442 cities — TSPLIB Opt: `50778`)
 - **`pr1002`** (1002 cities — TSPLIB Opt: `259045`)
 
-On the **`task3`** branch, we implement our proposed hybrid Evolutionary Algorithm **`eaMuPlusLambdaUnique`** (Diversity-Preserving $(\mu + \lambda)$-EA with Nearest Neighbor heuristic initialization, Tournament parent selection, Order Crossover, Shuffle Indexes Mutation, and duplicate-eliminating $(\mu + \lambda)$ elitist survivor selection) under a strict **50,000 fitness evaluation limit** per run.
-
----
-
-## Branches & Tags Map (Reproducibility Index)
-
-Every experiment and table in the assignment report can be reproduced directly using the Git branches and tags below:
-
-| Git Ref (Branch / Tag) | Purpose | Report Reference |
-| :--- | :--- | :--- |
-| `main` *(branch)* | Original provided starter files (`tsp.py`, `solve_tsp.py`, `elitism.py`) | Foundation |
-| `Task1andTask2` *(tag)* | Optimal tour parser, exact & rounded tour lengths, and simultaneous plotting for all 5 TSPs | **Task 1 & 2** (Table 1, Figures 1–3) |
-| `AlgorithmEmpiricalTestingCodes` *(tag)* | Empirical comparison of all 8 algorithms (`EA`, `EP`, `EP Standard`, `ES`, `EV Steady-State`, `EV Batch`, `GENITOR`, `eaMuPlusLambdaUnique`) | **Section 3.1.2** (Table 2, Figure 6) |
-| `Task3SoftRelease` *(tag)* / `task3` *(branch)* | Final tuned **`eaMuPlusLambdaUnique`** algorithm and parameters | **Section 3.2** (Tables 5–6, Figure 7) |
+This repository (`main` branch) combines Tasks 1, 2, and 3 in one unified pipeline, implementing our proposed hybrid Evolutionary Algorithm **`eaMuPlusLambdaUnique`** (Diversity-Preserving $(\mu + \lambda)$-EA with Nearest Neighbor heuristic initialization, Tournament parent selection, Order Crossover, Shuffle Indexes Mutation, and duplicate-eliminating $(\mu + \lambda)$ elitist survivor selection) under a strict **50,000 fitness evaluation limit** per run.
 
 ---
 
@@ -52,7 +39,7 @@ Every experiment and table in the assignment report can be reproduced directly u
 ## Step-by-Step Reproduction Guide
 
 ### 1. Reproducing Task 1 & Task 2 (Table 1 & Figure 3)
-Runs `tsp.py` directly (works out of the box on the `task3` branch, in the submitted zip archive, or via the `Task1andTask2` tag) to print exact/rounded optimal tour lengths and plot all 5 optimal tours simultaneously:
+Runs `tsp.py` directly (using `float64` coordinates and TSPLIB `EUC_2D` per-edge nearest-integer rounding `int(distance + 0.5)`) to print exact optimal tour lengths (`7542`, `629`, `3916`, `50778`, `259045`) and plot all 5 optimal tours simultaneously:
 ```bash
 python tsp.py
 ```
@@ -60,11 +47,10 @@ python tsp.py
 ---
 
 ### 2. Reproducing Section 3.1.2 — 8-Algorithm Empirical Comparison (Table 2 & Figure 6)
-Checks out the empirical testing tag containing all 8 evolutionary algorithms under the shared baseline configuration (`POPULATION_SIZE = 300`, `MAX_EVALS = 50000`, `HEURISTIC_PROB = 1.0`, `HEURISTIC_K = 1`, `RANDOM_SEED = 42`, `mutShuffleIndexes`, `cxOrdered`):
-```bash
-git checkout AlgorithmEmpiricalTestingCodes
-```
-Open `solve_tsp.py` and **uncomment only the algorithm block (`#1` through `#8`)** you want to benchmark, then run:
+All 8 evolutionary algorithms are implemented in `elitism.py` and selectable directly inside `solve_tsp.py`.
+To reproduce Table 2 under the shared baseline configuration (`POPULATION_SIZE = 300`, `MAX_EVALS = 50000`, `HEURISTIC_PROB = 1.0`, `HEURISTIC_K = 1`, `RANDOM_SEED = 42`, `mutShuffleIndexes`, `cxOrdered`, `selTournament(tournsize=2)`, and for `#8`: `EA_MPL_MU = 300`, `EA_MPL_LAMBDA = 300`, `EA_MPL_P_CROSSOVER = 0.9`, `EA_MPL_P_MUTATION = 0.1`):
+1. Open `solve_tsp.py` and set `EA_MPL_TOURN_SIZE = 2` (and for `#8`, set `EA_MPL_LAMBDA = 300` and `EA_MPL_P_MUTATION = 0.1`).
+2. **Uncomment only the algorithm block (`#1` through `#8`)** you want to benchmark, then run:
 ```bash
 python solve_tsp.py
 ```
@@ -84,10 +70,9 @@ python solve_tsp.py
 
 ### 3. Reproducing Section 3.2 — Final Proposed Algorithm & 5-Run Results (Tables 5–6 & Figure 7)
 
-Switch to the `task3` branch (or `Task3SoftRelease` tag):
+Run `solve_tsp.py` directly out of the box (default `RANDOM_SEED = 42` reproduces Run 1 and displays the Figure 7 tour and convergence plots simultaneously):
 ```bash
-git checkout task3
-# or: git checkout Task3SoftRelease
+python solve_tsp.py
 ```
 
 #### Final Tuned Configuration (`solve_tsp.py`)
@@ -111,9 +96,7 @@ In `solve_tsp.py` (line 21), set `RANDOM_SEED` to each of the **5 seeds** used i
 5. **Run 5:** `RANDOM_SEED = 99` $\rightarrow$ `python solve_tsp.py`
 
 #### Reproducing the Visualizations (Figure 7)
-To display the best tour plots and Min/Average fitness convergence curves for all 5 TSPs simultaneously:
-1. In `solve_tsp.py`, uncomment the plotting blocks on **lines 226–244** and `plt.show()` on **line 265**.
-2. Run `python solve_tsp.py` (Figure 7 in the report was generated with `RANDOM_SEED = 42`).
+Tour plots and Min/Average fitness convergence curves for all 5 TSPs are enabled by default in `solve_tsp.py` (lines 226–244 and `plt.show()` on line 265). Running `python solve_tsp.py` with `RANDOM_SEED = 42` reproduces Figure 7 directly.
 
 ---
 
