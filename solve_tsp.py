@@ -215,33 +215,33 @@ def main():
         best_ever_fitness[problem_name] = best_fitness
         eval_counts[problem_name] = total_evals
 
-        # # print best individual info for this problem:
-        # print(f"=== Problem: {problem_name} ===")
-        # print("-- Best Ever Individual = ", best)
+        # print best individual info for this problem:
+        print(f"=== Problem: {problem_name} ===")
+        print("-- Best Ever Individual = ", best)
         print(f"-- Best Ever Fitness    =  {best_fitness:.4f} (rounded: {round(best_fitness)})")
-        # print(f"-- Optimal Tour Length  =  {opt_val}")
-        # print(f"-- Error (Best - Opt)   =  {error:.4f} ({pct_error:.2f}%)")
-        # print("-" * 60)
+        print(f"-- Optimal Tour Length  =  {opt_val}")
+        print(f"-- Error (Best - Opt)   =  {error:.4f} ({pct_error:.2f}%)")
+        print("-" * 60)
 
-        # # plot best solution:
-        # plt.figure(fig_num, figsize=(10, 6))
-        # current_tsp.plotData(best)
-        # plt.title(f"{problem_name} - Best GA Tour: {best_fitness:.2f} | Opt: {opt_val} | Error: {error:.2f} ({pct_error:.2f}%)")
-        # plt.tight_layout()
-        # fig_num += 1
+        # plot best solution:
+        plt.figure(fig_num, figsize=(6, 4))
+        current_tsp.plotData(best)
+        plt.title(f"{problem_name} - Best GA Tour: {best_fitness:.2f} | Opt: {opt_val} | Error: {error:.2f} ({pct_error:.2f}%)")
+        plt.tight_layout()
+        fig_num += 1
 
-        # # plot statistics:
-        # minFitnessValues, meanFitnessValues = logbook.select("min", "avg")
-        # plt.figure(fig_num, figsize=(10, 6))
-        # plt.plot(minFitnessValues, color='red', label='Min Fitness')
-        # plt.plot(meanFitnessValues, color='green', label='Avg Fitness')
-        # plt.axhline(y=opt_val, color='blue', linestyle='--', label=f'Optimal ({opt_val})')
-        # plt.xlabel('Generation')
-        # plt.ylabel('Min / Average Fitness')
-        # plt.title(f'{problem_name} - Min and Average Fitness over Generations')
-        # plt.legend()
-        # plt.tight_layout()
-        # fig_num += 1
+        # plot statistics:
+        minFitnessValues, meanFitnessValues = logbook.select("min", "avg")
+        plt.figure(fig_num, figsize=(6, 4))
+        plt.plot(minFitnessValues, color='red', label='Min Fitness')
+        plt.plot(meanFitnessValues, color='green', label='Avg Fitness')
+        plt.axhline(y=opt_val, color='blue', linestyle='--', label=f'Optimal ({opt_val})')
+        plt.xlabel('Generation')
+        plt.ylabel('Min / Average Fitness')
+        plt.title(f'{problem_name} - Min and Average Fitness over Generations')
+        plt.legend()
+        plt.tight_layout()
+        fig_num += 1
 
     # print summary of all errors and their total sum:
     total_error_sum = sum(errors.values())
@@ -261,8 +261,8 @@ def main():
     print(f"Average Execution Time (s)     : {sum(times.values()) / len(times):.2f}s")
     print("=" * 60)
 
-    # # show all plots simultaneously:
-    # plt.show()
+    # show all plots simultaneously:
+    plt.show()
 
 
 if __name__ == "__main__":
